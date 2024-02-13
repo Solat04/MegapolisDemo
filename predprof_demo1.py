@@ -1,42 +1,50 @@
-f=open('students.csv')
-z1,z2,z3,z4,z5=f.readline().split(',') #считываем строку с заголовками
-tab=[] #это будет двухмерный список со всеми данными
-fio=[] #ФИО через пробел, а удобно работать по отдельности
-classerror=[] #список классов, у которых есть ошибка в данных
-summ=0
+def readfile(namefile):
+    '''
+    Read file and create list of students
+    :param namefile: str, name file
+    :return: list of students
+    '''
+    f=open(namefile,'r',encoding='utf-8')
+    students=[]
+    for i in range(501):
+        students.append(f.readline().strip().split(','))
+        if students[i][4]=='None':
+            students[i][4]='0'
+    return students
 
-#создаем двухмерный список данных из файла:
-for i in range(500):
-    d1,d2,d3,d4,d5=f.readline().split(',') #прочитали строку из файла, разбили
-    fio=d2.split() # разбили ФИО на фамилию, имя, отчество отдельно
-    if d5=='None\n': #обрабатываем строки с ошибкой 
-        classerror.append([d4,0,0,0]) #добавляем класс в список классов, у которых встречается None
-        d5='0' 
-    # создаем двухмерный список с исходными данными
-    tab.append([int(d1),fio[0],fio[1],fio[2],int(d3),d4,int(d5)]) 
+def aver(clas):
+    '''
+    Нахождение среднего арифметического оценок учащихся класса
+    :param clas: str, class number
+    :return: float, average mark
+    '''
+    summ=0
+    n=0
+    for i in range (1,501):
+        if students[i][3]==clas and students[i][4]!='0':
+            summ+=int(students[i][4])
+            n+=1
+    return format(summ/n,'.3f')
 
-#ищем ответ на первый вопрос - оценка Хадаровав        
-    if fio[0]=='Хадаров' and fio[1]=='Владимир':
-        print(f'Ты получил: {int(d5)}, за проект - {d3}')
+def repl():
+    '''Замена ошибочной оценки 'None' на среднюю орифметическую по классу
+    '''
+    for i in range(1,501):
+        if students[i][4]=='0':
+            students[i][4] = str(aver(students[i][3]))
 
-#обрабатываем массив classerror: если в строке оценка не 0, то добавляем 1й элемент-сумма оценок,2й количество 
-for x in range(len(classerror)):
-    aclass=classerror[x][0]
-    for i in range(500):
-        if tab[i][-2]==aclass and tab[i][-1]!=0:
-            classerror[x][1]+=tab[i][-1]
-            classerror[x][2]+=1
-    #среднее арифметическое по классу с 3 знаками после запятой
-    classerror[x][3]=format(classerror[x][1]/classerror[x][2],'.3f')
-    #дальше везде, где этот номер класса и не 0, заменяем на среднее арифметическое
-    for i in range(500):
-        if tab[i][-2]==aclass and tab[i][-1]==0:
-            tab[i][-1]=classerror[x][3]
-        
-#записываем в новый файл исправленную таблицу
-fn=open('student_new.csv','w')
-fn.write(z1+';'+z2+';'+z3+';'+z4+';'+z5) # заголовок таблицы
-# построчная запись данных в файл (все данные + разделители)
-for i in range(500): 
-    fn.write(str(tab[i][0])+';'+tab[i][1]+' '+tab[i][2]+' '+tab[i][3]+';'+str(tab[i][4])+';'+tab[i][5]+';'+str(tab[i][6])+'\n')
-fn.close()
+def writefile(name):
+    '''
+    Write new file with hash-key
+    :param name: str, name file
+    '''
+    f = open(name, 'w', encoding='utf-8')
+    f.write(','.join(students[0])+'\n')
+    for i in range(1,501):
+        f.write(','.join(students[i]) + '\n')
+    f.close()
+
+
+students=readfile('/home/teacher/Загрузки/students.csv')
+repl()
+writefile('/home/teacher/Загрузки/student_new.csv')
